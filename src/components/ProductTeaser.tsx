@@ -13,7 +13,7 @@ export function ProductTeaser() {
           </h2>
           <p>
             Уже сейчас формируется портфель первых цифровых продуктов. Часть работает, часть находится на
-            стадии MVP или активной разработки. Это первые видимые следы будущей экосистемы.
+            стадии MVP или активной разработки. Это первые видимые следы будущей среды.
           </p>
         </div>
         <a className="button button-ghost product-button" href={productSiteUrl} target="_blank" rel="noreferrer">

@@ -1,4 +1,5 @@
 import { ArrowRight, Leaf } from 'lucide-react';
+import { residentCards } from '../data/content';
 
 export function ResidentSection() {
   return (
@@ -8,25 +9,43 @@ export function ResidentSection() {
         <div className="resident-content">
           <div className="section-kicker">для резидентов</div>
           <h2 id="resident-title" className="section-title">
-            Резидентам — место, где можно не распыляться
+            Не для тех, кто ждет таску. Для тех, кто хочет сдвинуть границу возможного.
           </h2>
           <p>
-            Мы создаем среду для тех, кто умеет работать без внешнего шума. Здесь можно жить рядом с природой,
-            собирать команду, делать прототипы, обсуждать идеи с людьми из соседних направлений и не тратить
-            силы на имитацию бурной деятельности.
+            Долина не создается как еще одно место, где взрослым людям красиво раскладывают задачи по Jira
+            и покупают мотивацию комфортом. Нам интересны те, кто сам ищет трудную тему, долго держит фокус
+            и не пугается, когда путь оказывается сложнее презентации.
+          </p>
+          <p>
+            Это место для людей, которым в кайф работать среди природы, думать на длинной дистанции,
+            спорить с умными соседями, собирать прототипы, писать код, чертить схемы, выращивать
+            лабораторные гипотезы и смотреть на древний Суздаль не как на декорацию, а как на напоминание:
+            большие вещи строятся не за квартал.
           </p>
           <div className="resident-badge">
             <Leaf size={20} aria-hidden="true" />
-            <span>тишина, мастерская, разговор по делу, воздух</span>
+            <span>тишина, мастерская, спор по делу, воздух, длинный фокус</span>
           </div>
-          <div className="section-actions">
-            <a className="button button-primary" href="#contacts">
-              Подать заявку <ArrowRight size={18} aria-hidden="true" />
-            </a>
-            <a className="button button-ghost" href="mailto:hello@example.com?subject=Проект для Суздальской IT Долины">
-              Написать о проекте
-            </a>
-          </div>
+        </div>
+      </div>
+      <div className="resident-card-block" aria-labelledby="resident-close-title">
+        <h3 id="resident-close-title">Кто нам близок</h3>
+        <div className="resident-card-grid">
+          {residentCards.map((card) => (
+            <article className="resident-card" key={card.title}>
+              <h4>{card.title}</h4>
+              <p>{card.text}</p>
+            </article>
+          ))}
+        </div>
+        <div className="resident-cta">
+          <a className="button button-primary" href="#contact">
+            Рассказать о себе и проекте <ArrowRight size={18} aria-hidden="true" />
+          </a>
+          <p>
+            Нам не нужен идеальный pitch deck. Лучше честно расскажите, что вы умеете, что хотите построить
+            и почему это для вас важно.
+          </p>
         </div>
       </div>
     </section>

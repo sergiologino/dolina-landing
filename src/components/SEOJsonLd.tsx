@@ -9,13 +9,13 @@ export function SEOJsonLd() {
       url: siteUrl,
       inLanguage: 'ru-RU',
       description:
-        'Будущая технологическая резиденция под Суздалем для IT-команд, инженеров, исследователей и инвесторов.'
+        'Технологическая резиденция под Суздалем для инженеров, исследователей, IT-команд, резидентов и инвесторов с длинным горизонтом.'
     },
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: 'Суздальская IT Долина',
-      alternateName: 'Suzdal IT Valley',
+      alternateName: ['Suzdal IT Valley', 'Suzdal Millennium'],
       description: 'Резиденция IT-команд, инженеров, исследователей и технологических проектов под Суздалем',
       areaServed: 'Россия',
       sameAs: []

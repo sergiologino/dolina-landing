@@ -25,10 +25,6 @@ export function HeroValleyStage() {
   return (
     <header className="hero-stage" id="top">
       <nav className="site-nav" aria-label="Главная навигация">
-        <a className="brand-mark" href="#top" aria-label="Суздальская IT Долина">
-          <span className="brand-mark-symbol">IT</span>
-          <span>Суздальская Долина</span>
-        </a>
         <div className="nav-links">
           {navigationItems.map((item) => (
             <a href={item.href} key={item.href}>
@@ -59,17 +55,21 @@ export function HeroValleyStage() {
           <p className="hero-subtitle">резиденция IT-команд и цифровых продуктов</p>
           <p className="hero-text">
             Мы собираем людей, которым тесно в обычной карьере. Инженеров, исследователей,
-            разработчиков и предпринимателей, готовых делать сложные технологии в спокойной среде под
-            Суздалем.
+            разработчиков, предпринимателей и творческих практиков, готовых двигать технологии не по
+            инструкции, а через собственную одержимость, труд и вкус к невозможному.
           </p>
           <div className="hero-actions layer-floating">
             <a className="button button-primary" href="#residents">
               Стать резидентом <ArrowRight size={18} aria-hidden="true" />
             </a>
             <a className="button button-ghost" href="#investors">
-              Обсудить инвестиции
+              Инвестировать в Долину
             </a>
           </div>
+          <p className="hero-note">
+            Это не короткая программа и не офисная вакансия. Это территория для тех, кто хочет строить
+            дольше и глубже.
+          </p>
         </FloatingGlassPanel>
 
         <aside className="stage-console layer-floating" aria-live="polite" id={`scene-panel-${currentScene.id}`}>
