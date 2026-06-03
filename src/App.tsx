@@ -1,5 +1,7 @@
 import { ContactSection } from './components/ContactSection';
 import { FinalCTA } from './components/FinalCTA';
+import { FounderProfilePage } from './components/FounderProfilePage';
+import { FoundersPreviewSection } from './components/FoundersPreviewSection';
 import { HeroValleyStage } from './components/HeroValleyStage';
 import { InvestorSection } from './components/InvestorSection';
 import { InvestorValueSection } from './components/InvestorValueSection';
@@ -9,10 +11,17 @@ import { ResidentSection } from './components/ResidentSection';
 import { RoadmapValley } from './components/RoadmapValley';
 import { RussiaBenefitSection } from './components/RussiaBenefitSection';
 import { SEOJsonLd } from './components/SEOJsonLd';
+import { SiteFooter } from './components/SiteFooter';
 import { TechnologyMap } from './components/TechnologyMap';
 import { faqItems } from './data/content';
 
 export function App() {
+  const isTeamPage = typeof window !== 'undefined' && window.location.pathname === '/team';
+
+  if (isTeamPage) {
+    return <FounderProfilePage />;
+  }
+
   return (
     <>
       <SEOJsonLd />
@@ -26,6 +35,7 @@ export function App() {
         <InvestorValueSection />
         <RussiaBenefitSection />
         <ProductTeaser />
+        <FoundersPreviewSection />
         <section className="section section-faq" id="faq" aria-labelledby="faq-title">
           <div className="section-kicker">AEO / GEO</div>
           <h2 id="faq-title" className="section-title">
@@ -47,6 +57,7 @@ export function App() {
         <ContactSection />
         <FinalCTA />
       </main>
+      <SiteFooter />
     </>
   );
 }

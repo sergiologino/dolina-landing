@@ -20,6 +20,7 @@ export const navigationItems = [
   { label: 'Инвесторы', href: '#investors' },
   { label: 'Хабы', href: '#roadmap' },
   { label: 'Продукты', href: '#products' },
+  { label: 'Команда', href: '/team' },
   { label: 'Контакты', href: '#contact' }
 ];
 
