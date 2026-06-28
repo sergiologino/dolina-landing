@@ -1,10 +1,50 @@
-import { ArrowRight, Mail } from 'lucide-react';
-import { contactMail, contactOptions, contactTelegram } from '../data/content';
+import { useState, type FormEvent } from 'react';
+import { Paperclip, Send } from 'lucide-react';
+import { contactOptions } from '../data/content';
 
-const mailSubject = 'Заявка в Суздальскую IT Долину';
-const mailBody = `Имя:%0AКонтакт:%0AЯ хочу:%0AСообщение:%0A`;
+type SubmissionState = 'idle' | 'sending' | 'success' | 'error';
+
+const maxFileSizeMb = 10;
 
 export function ContactSection() {
+  const [submissionState, setSubmissionState] = useState<SubmissionState>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const file = formData.get('attachment');
+
+    if (file instanceof File && file.size > maxFileSizeMb * 1024 * 1024) {
+      setSubmissionState('error');
+      setStatusMessage(`Файл должен быть не больше ${maxFileSizeMb} МБ.`);
+      return;
+    }
+
+    setSubmissionState('sending');
+    setStatusMessage('Отправляем заявку…');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        body: formData
+      });
+      const result = (await response.json().catch(() => null)) as { message?: string } | null;
+
+      if (!response.ok) {
+        throw new Error(result?.message || 'Не удалось отправить заявку.');
+      }
+
+      form.reset();
+      setSubmissionState('success');
+      setStatusMessage('Заявка отправлена. Мы свяжемся с вами по указанному контакту.');
+    } catch (error) {
+      setSubmissionState('error');
+      setStatusMessage(error instanceof Error ? error.message : 'Не удалось отправить заявку.');
+    }
+  }
+
   return (
     <section className="section contact-section" id="contact" aria-labelledby="contact-title">
       <div className="contact-shell">
@@ -19,18 +59,24 @@ export function ContactSection() {
             начале.
           </p>
         </div>
-        <div className="contact-card" aria-label="Форма заявки">
+        <form className="contact-card" aria-label="Форма заявки" onSubmit={handleSubmit}>
           <label>
             Имя
-            <input type="text" placeholder="Как к вам обращаться" disabled />
+            <input name="name" type="text" placeholder="Как к вам обращаться" maxLength={120} required />
           </label>
           <label>
             Контакт
-            <input type="text" placeholder="Email, Telegram или телефон" disabled />
+            <input
+              name="contact"
+              type="text"
+              placeholder="Email, Telegram или телефон"
+              maxLength={200}
+              required
+            />
           </label>
           <label>
             Я хочу
-            <select disabled defaultValue={contactOptions[0]}>
+            <select name="intent" defaultValue={contactOptions[0]} required>
               {contactOptions.map((option) => (
                 <option key={option}>{option}</option>
               ))}
@@ -38,25 +84,43 @@ export function ContactSection() {
           </label>
           <label>
             Сообщение
-            <textarea placeholder="Что вы умеете, что хотите построить и какой формат участия вам близок" disabled />
+            <textarea
+              name="message"
+              placeholder="Что вы умеете, что хотите построить и какой формат участия вам близок"
+              maxLength={3000}
+              required
+            />
           </label>
-          <a
-            className="button button-primary"
-            href={`mailto:${contactMail}?subject=${encodeURIComponent(mailSubject)}&body=${mailBody}`}
-          >
-            <Mail size={18} aria-hidden="true" />
-            Отправить заявку
-          </a>
-          {contactTelegram ? (
-            <a className="button button-ghost" href={contactTelegram} target="_blank" rel="noreferrer">
-              Написать в Telegram <ArrowRight size={18} aria-hidden="true" />
-            </a>
+          <label className="contact-file">
+            <span>
+              <Paperclip size={18} aria-hidden="true" />
+              Прикрепить файл
+            </span>
+            <input name="attachment" type="file" />
+            <small>До {maxFileSizeMb} МБ</small>
+          </label>
+          <input
+            className="contact-honeypot"
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+          <button className="button button-primary" type="submit" disabled={submissionState === 'sending'}>
+            <Send size={18} aria-hidden="true" />
+            {submissionState === 'sending' ? 'Отправляем…' : 'Отправить заявку'}
+          </button>
+          {statusMessage ? (
+            <p
+              className={`contact-status contact-status-${submissionState}`}
+              role={submissionState === 'error' ? 'alert' : 'status'}
+            >
+              {statusMessage}
+            </p>
           ) : null}
-          <p className="contact-note">
-            Пока это аккуратная заглушка: кнопка открывает письмо. Адрес можно заменить через
-            `VITE_CONTACT_EMAIL`, Telegram - через `VITE_CONTACT_TELEGRAM`.
-          </p>
-        </div>
+          <p className="contact-note">Данные заявки и прикреплённый файл будут отправлены команде проекта в Telegram.</p>
+        </form>
       </div>
     </section>
   );

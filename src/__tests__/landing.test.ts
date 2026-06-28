@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { App } from '../App';
+import { ContactSection } from '../components/ContactSection';
 import { FounderProfilePage } from '../components/FounderProfilePage';
 import { RussiaBenefitSection } from '../components/RussiaBenefitSection';
 import { SceneSwitcher } from '../components/SceneSwitcher';
@@ -78,6 +79,21 @@ describe('landing content contract', () => {
     expect(html).toContain('href="#investors"');
     expect(html).toContain('href="#contact"');
     expect(html).toContain('href="/team"');
+  });
+
+  it('renders an enabled contact form with all Telegram submission fields and attachment', () => {
+    const html = renderToStaticMarkup(createElement(ContactSection));
+
+    expect(html).toContain('<form');
+    expect(html).toContain('name="name"');
+    expect(html).toContain('name="contact"');
+    expect(html).toContain('name="intent"');
+    expect(html).toContain('name="message"');
+    expect(html).toContain('name="attachment"');
+    expect(html).toContain('type="file"');
+    expect(html).toContain('type="submit"');
+    expect(html).not.toContain(' disabled=""');
+    expect(html).not.toContain('mailto:');
   });
 
   it('keeps AEO answers aligned with long-horizon positioning', () => {

@@ -244,10 +244,13 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  border: 0;
   border-radius: 999px;
+  cursor: pointer;
   padding: 15px 22px;
   font-size: 15px;
   font-weight: 800;
+  font-family: inherit;
   transition-property: transform, opacity, box-shadow, background-color, border-color;
   transition-duration: 240ms;
   transition-timing-function: ease;
@@ -255,6 +258,12 @@ h1 {
 
 .button:hover {
   transform: translateY(-2px);
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.66;
+  transform: none;
 }
 
 .button-primary {
@@ -1455,6 +1464,50 @@ h1 {
 .contact-card textarea {
   min-height: 116px;
   resize: vertical;
+}
+
+.contact-card input:focus-visible,
+.contact-card select:focus-visible,
+.contact-card textarea:focus-visible {
+  border-color: rgba(214, 168, 76, 0.82);
+  outline: 2px solid rgba(214, 168, 76, 0.25);
+  outline-offset: 2px;
+}
+
+.contact-file span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contact-file input[type="file"] {
+  cursor: pointer;
+}
+
+.contact-file small {
+  color: rgba(246, 238, 219, 0.58);
+  font-weight: 500;
+}
+
+.contact-honeypot {
+  display: none;
+}
+
+.contact-status {
+  margin: 0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  line-height: 1.5;
+}
+
+.contact-status-success {
+  color: #dcf5d2;
+  background: rgba(72, 128, 68, 0.24);
+}
+
+.contact-status-error {
+  color: #ffe0d6;
+  background: rgba(159, 70, 46, 0.25);
 }
 
 .contact-note {

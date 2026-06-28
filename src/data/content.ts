@@ -26,9 +26,6 @@ export const navigationItems = [
 
 export const productSiteUrl = 'https://altacod.com';
 
-export const contactMail = import.meta.env.VITE_CONTACT_EMAIL || 'hello@example.com';
-export const contactTelegram = import.meta.env.VITE_CONTACT_TELEGRAM || '';
-
 export const scenes = [
   {
     id: 'current',

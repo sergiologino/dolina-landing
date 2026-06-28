@@ -2,8 +2,14 @@ import { createReadStream, existsSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, join, normalize } from 'node:path';
+import { loadEnv } from 'vite';
+import { handleContactRequest } from './contact-api.mjs';
 
 const root = join(process.cwd(), 'dist');
+const loadedEnv = loadEnv('production', process.cwd(), '');
+for (const [key, value] of Object.entries(loadedEnv)) {
+  if (process.env[key] === undefined) process.env[key] = value;
+}
 const port = Number(process.env.PORT || 4173);
 
 const mimeTypes = {
@@ -22,6 +28,12 @@ const mimeTypes = {
 
 createServer(async (request, response) => {
   const url = new URL(request.url ?? '/', `http://127.0.0.1:${port}`);
+
+  if (url.pathname === '/api/contact') {
+    await handleContactRequest(request, response);
+    return;
+  }
+
   const cleanPath = normalize(decodeURIComponent(url.pathname))
     .replace(/^[/\\]+/, '')
     .replace(/^(\.\.[/\\])+/, '');
