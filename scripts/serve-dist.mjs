@@ -11,6 +11,7 @@ for (const [key, value] of Object.entries(loadedEnv)) {
   if (process.env[key] === undefined) process.env[key] = value;
 }
 const port = Number(process.env.PORT || 4173);
+const host = process.env.HOST || '0.0.0.0';
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -27,7 +28,7 @@ const mimeTypes = {
 };
 
 createServer(async (request, response) => {
-  const url = new URL(request.url ?? '/', `http://127.0.0.1:${port}`);
+  const url = new URL(request.url ?? '/', `http://${host}:${port}`);
 
   if (url.pathname === '/api/contact') {
     await handleContactRequest(request, response);
@@ -52,6 +53,6 @@ createServer(async (request, response) => {
     response.statusCode = 404;
     response.end('Not found');
   }
-}).listen(port, '127.0.0.1', () => {
-  console.log(`Serving ${root} at http://127.0.0.1:${port}`);
+}).listen(port, host, () => {
+  console.log(`Serving ${root} at http://${host}:${port}`);
 });

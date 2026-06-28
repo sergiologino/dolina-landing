@@ -43,6 +43,8 @@
 - `npm run dev` — Vite и контактный API на `127.0.0.1:3000`.
 - `npm test` — однократный запуск Vitest.
 - `npm run build` — тесты, TypeScript-проверка, Vite-сборка и генерация sitemap/robots.
-- `npm run preview` / `npm start` — production-сервер на `127.0.0.1:4173` или порту из `PORT`.
+- `npm run preview` / `npm start` — production-сервер на `0.0.0.0:4173`; адрес и порт настраиваются через `HOST` и `PORT`.
 
 Для работающей формы production-развёртывание должно запускать Node-сервер командой `npm start`; публикация только содержимого `dist/` на статическом хостинге не предоставляет `/api/contact`.
+
+В Coolify команда запуска — `npm start`. Команда `npx vite preview` недопустима для production этого проекта, поскольку не обрабатывает серверную точку контактов.

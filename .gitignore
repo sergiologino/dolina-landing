@@ -29,3 +29,4 @@ Thumbs.db
 # Runtime caches
 .vite/
 .vitest/
+/Бот.txt
