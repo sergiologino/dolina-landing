@@ -59,7 +59,7 @@ describe('contact Telegram delivery', () => {
     expect(calls[0].url.endsWith('/sendMessage')).toBe(true);
     expect(JSON.parse(calls[0].options.body)).toMatchObject({
       chat_id: '-100123',
-      message_thread_id: '42'
+      message_thread_id: 42
     });
     expect(calls[1].url.endsWith('/sendDocument')).toBe(true);
     expect(calls[1].options.body.get('chat_id')).toBe('-100123');
@@ -76,5 +76,28 @@ describe('contact Telegram delivery', () => {
         fetchImpl: vi.fn()
       })
     ).rejects.toThrow('Форма временно недоступна');
+  });
+
+  it('preserves the Telegram error description for server diagnostics', async () => {
+    const submission = parseContactForm(createSubmissionForm());
+    const fetchImpl = vi.fn(async () => ({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        ok: false,
+        error_code: 400,
+        description: 'Bad Request: chat not found'
+      })
+    }));
+
+    await expect(
+      sendContactToTelegram(submission, {
+        env: {
+          TELEGRAM_BOT_TOKEN: 'test-token',
+          TELEGRAM_CHAT_ID: '-100123'
+        },
+        fetchImpl
+      })
+    ).rejects.toThrow('Bad Request: chat not found');
   });
 });

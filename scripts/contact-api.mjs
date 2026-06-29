@@ -16,6 +16,18 @@ class ContactApiError extends Error {
   }
 }
 
+class TelegramApiError extends Error {
+  constructor(method, statusCode, errorCode, description) {
+    const details = [
+      `Telegram ${method} failed`,
+      statusCode ? `HTTP ${statusCode}` : null,
+      errorCode ? `error ${errorCode}` : null,
+      description || null
+    ].filter(Boolean);
+    super(details.join(': '));
+  }
+}
+
 function getRequiredString(formData, fieldName) {
   const value = formData.get(fieldName);
   const normalized = typeof value === 'string' ? value.trim() : '';
@@ -78,9 +90,14 @@ function formatFileSize(bytes) {
 function getTelegramConfig(env) {
   const token = env.TELEGRAM_BOT_TOKEN?.trim();
   const chatId = env.TELEGRAM_CHAT_ID?.trim();
-  const threadId = env.TELEGRAM_MESSAGE_THREAD_ID?.trim();
+  const rawThreadId = env.TELEGRAM_MESSAGE_THREAD_ID?.trim();
 
   if (!token || !chatId) {
+    throw new ContactApiError(503, 'Форма временно недоступна. Попробуйте позже.');
+  }
+
+  const threadId = rawThreadId ? Number(rawThreadId) : undefined;
+  if (threadId !== undefined && (!Number.isSafeInteger(threadId) || threadId <= 0)) {
     throw new ContactApiError(503, 'Форма временно недоступна. Попробуйте позже.');
   }
 
@@ -88,12 +105,20 @@ function getTelegramConfig(env) {
 }
 
 async function callTelegram(method, token, requestOptions, fetchImpl) {
-  const response = await fetchImpl(`https://api.telegram.org/bot${token}/${method}`, requestOptions);
+  let response;
+  try {
+    response = await fetchImpl(`https://api.telegram.org/bot${token}/${method}`, requestOptions);
+  } catch (error) {
+    throw new TelegramApiError(method, null, null, error instanceof Error ? error.message : 'network error');
+  }
+
   const payload = await response.json().catch(() => null);
 
   if (!response.ok || payload?.ok !== true) {
-    throw new Error(`Telegram API rejected ${method}`);
+    throw new TelegramApiError(method, response.status, payload?.error_code, payload?.description || 'invalid response');
   }
+
+  return payload.result;
 }
 
 export async function sendContactToTelegram(submission, options = {}) {
@@ -119,7 +144,7 @@ export async function sendContactToTelegram(submission, options = {}) {
   if (submission.attachment) {
     const documentData = new FormData();
     documentData.set('chat_id', chatId);
-    if (threadId) documentData.set('message_thread_id', threadId);
+    if (threadId) documentData.set('message_thread_id', String(threadId));
     documentData.set('document', submission.attachment, submission.attachment.name || 'attachment');
 
     await callTelegram(
