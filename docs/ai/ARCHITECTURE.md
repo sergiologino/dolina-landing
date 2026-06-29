@@ -21,7 +21,7 @@
 - `scripts/generate-sitemap.mjs` — генерация SEO-файлов в `dist/`.
 - `scripts/dev-server.mjs` — Vite dev middleware и контактный API в одном Node-процессе.
 - `scripts/serve-dist.mjs` — production-сервер статики с fallback на `index.html` и контактным API.
-- `scripts/contact-api.mjs` — валидация заявок и интеграция с Telegram Bot API.
+- `scripts/contact-api.mjs` — валидация заявок и клиент `noteapp-ai-integration`.
 
 ## Выполнение и маршрутизация
 
@@ -33,8 +33,10 @@
 
 - Контактная форма отправляет `multipart/form-data` в `POST /api/contact`.
 - Сервер проверяет обязательные поля и лимит файла 10 МБ.
-- Текст заявки доставляется методом Telegram Bot API `sendMessage`; приложенный файл — отдельным вызовом `sendDocument`.
-- Секретные `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` и опциональный `TELEGRAM_MESSAGE_THREAD_ID` читаются только Node-процессом и не попадают в frontend bundle.
+- Node-сервер вызывает `POST {AI_INTEGRATION_BASE_URL}/api/social/posts` с `X-API-Key`; прямых обращений к Telegram Bot API из лендинга нет.
+- Полный текст заявки публикуется первым запросом посреднику. При наличии файла второй запрос передаёт документ в Base64 без caption.
+- `noteapp-ai-integration` получает Telegram credentials транзитно и сам вызывает `sendMessage`/`sendDocument`.
+- Секретные `AI_INTEGRATION_API_KEY`, `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` читаются только Node-процессом и не попадают в frontend bundle.
 - Google Tag и Яндекс Метрика подключаются только при наличии соответствующих переменных окружения.
 - JSON-LD формируется React-компонентами `SEOJsonLd` и `TeamJsonLd`.
 

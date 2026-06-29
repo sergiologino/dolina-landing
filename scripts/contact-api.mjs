@@ -16,12 +16,11 @@ class ContactApiError extends Error {
   }
 }
 
-class TelegramApiError extends Error {
-  constructor(method, statusCode, errorCode, description) {
+class IntegrationApiError extends Error {
+  constructor(operation, statusCode, description) {
     const details = [
-      `Telegram ${method} failed`,
+      `AI integration ${operation} failed`,
       statusCode ? `HTTP ${statusCode}` : null,
-      errorCode ? `error ${errorCode}` : null,
       description || null
     ].filter(Boolean);
     super(details.join(': '));
@@ -87,73 +86,108 @@ function formatFileSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
 }
 
-function getTelegramConfig(env) {
+function getDeliveryConfig(env) {
   const token = env.TELEGRAM_BOT_TOKEN?.trim();
   const chatId = env.TELEGRAM_CHAT_ID?.trim();
-  const rawThreadId = env.TELEGRAM_MESSAGE_THREAD_ID?.trim();
+  const integrationBaseUrl = env.AI_INTEGRATION_BASE_URL?.trim().replace(/\/+$/, '');
+  const integrationApiKey = env.AI_INTEGRATION_API_KEY?.trim();
+  const socialPostsPath = env.AI_INTEGRATION_SOCIAL_POSTS_PATH?.trim() || '/api/social/posts';
 
-  if (!token || !chatId) {
+  if (!token || !chatId || !integrationBaseUrl || !integrationApiKey) {
     throw new ContactApiError(503, 'Форма временно недоступна. Попробуйте позже.');
   }
 
-  const threadId = rawThreadId ? Number(rawThreadId) : undefined;
-  if (threadId !== undefined && (!Number.isSafeInteger(threadId) || threadId <= 0)) {
-    throw new ContactApiError(503, 'Форма временно недоступна. Попробуйте позже.');
-  }
-
-  return { token, chatId, threadId };
+  return {
+    token,
+    chatId,
+    integrationApiKey,
+    integrationUrl: `${integrationBaseUrl}${socialPostsPath.startsWith('/') ? '' : '/'}${socialPostsPath}`
+  };
 }
 
-async function callTelegram(method, token, requestOptions, fetchImpl) {
+async function callIntegration(operation, payload, config, fetchImpl) {
   let response;
   try {
-    response = await fetchImpl(`https://api.telegram.org/bot${token}/${method}`, requestOptions);
+    response = await fetchImpl(config.integrationUrl, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'X-API-Key': config.integrationApiKey
+      },
+      body: JSON.stringify(payload)
+    });
   } catch (error) {
-    throw new TelegramApiError(method, null, null, error instanceof Error ? error.message : 'network error');
+    const cause = error instanceof Error && error.cause instanceof Error ? `: ${error.cause.message}` : '';
+    throw new IntegrationApiError(
+      operation,
+      null,
+      `${error instanceof Error ? error.message : 'network error'}${cause}`
+    );
   }
 
-  const payload = await response.json().catch(() => null);
+  const responsePayload = await response.json().catch(() => null);
 
-  if (!response.ok || payload?.ok !== true) {
-    throw new TelegramApiError(method, response.status, payload?.error_code, payload?.description || 'invalid response');
+  if (!response.ok) {
+    throw new IntegrationApiError(
+      operation,
+      response.status,
+      responsePayload?.message || responsePayload?.error || 'invalid response'
+    );
   }
 
-  return payload.result;
+  if (responsePayload?.status?.toLowerCase() !== 'success') {
+    throw new IntegrationApiError(
+      operation,
+      response.status,
+      responsePayload?.errorMessage || 'publication failed'
+    );
+  }
+
+  return responsePayload;
 }
 
 export async function sendContactToTelegram(submission, options = {}) {
   const fetchImpl = options.fetchImpl ?? fetch;
-  const { token, chatId, threadId } = getTelegramConfig(options.env ?? process.env);
-  const threadFields = threadId ? { message_thread_id: threadId } : {};
+  const config = getDeliveryConfig(options.env ?? process.env);
+  const credentials = {
+    botToken: config.token,
+    chatId: config.chatId
+  };
 
-  await callTelegram(
-    'sendMessage',
-    token,
+  await callIntegration(
+    'text publication',
     {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: createContactMessage(submission),
-        ...threadFields
-      })
+      userId: 'suzdal-it-valley-contact',
+      platform: 'telegram',
+      text: createContactMessage(submission),
+      credentials,
+      options: {
+        disableWebPagePreview: true
+      }
     },
+    config,
     fetchImpl
   );
 
   if (submission.attachment) {
-    const documentData = new FormData();
-    documentData.set('chat_id', chatId);
-    if (threadId) documentData.set('message_thread_id', String(threadId));
-    documentData.set('document', submission.attachment, submission.attachment.name || 'attachment');
-
-    await callTelegram(
-      'sendDocument',
-      token,
+    const attachmentBytes = Buffer.from(await submission.attachment.arrayBuffer());
+    await callIntegration(
+      'document publication',
       {
-        method: 'POST',
-        body: documentData
+        userId: 'suzdal-it-valley-contact',
+        platform: 'telegram',
+        text: '',
+        credentials,
+        attachments: [
+          {
+            type: 'document',
+            fileName: submission.attachment.name || 'attachment',
+            contentType: submission.attachment.type || 'application/octet-stream',
+            base64: attachmentBytes.toString('base64')
+          }
+        ]
       },
+      config,
       fetchImpl
     );
   }
